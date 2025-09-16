@@ -1,4 +1,4 @@
-package ru.rut.mad.myapplication
+package ru.rut.mad.cleanapp
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -11,7 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import ru.rut.mad.myapplication.ui.theme.CleanAppTheme
+import ru.rut.mad.cleanapp.ui.theme.CleanAppTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

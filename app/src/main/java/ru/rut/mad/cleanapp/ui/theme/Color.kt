@@ -1,4 +1,4 @@
-package ru.rut.mad.myapplication.ui.theme
+package ru.rut.mad.cleanapp.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

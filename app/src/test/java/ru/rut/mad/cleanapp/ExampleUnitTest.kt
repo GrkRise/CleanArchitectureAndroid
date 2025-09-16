@@ -1,4 +1,4 @@
-package ru.rut.mad.myapplication
+package ru.rut.mad.cleanapp
 
 import org.junit.Test
 
