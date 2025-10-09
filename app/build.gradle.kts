@@ -93,6 +93,9 @@ dependencies {
     implementation(libs.koin.android)
     implementation(libs.koin.compose)
 
+    implementation(libs.retrofit.core)
+    implementation(libs.retrofit.converter.kotlinx.serialization)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

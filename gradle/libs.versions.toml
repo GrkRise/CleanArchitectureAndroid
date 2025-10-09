@@ -20,7 +20,7 @@ coil = "2.7.0"
 
 navigationCompose = "2.9.5"
 kotlinxSerialization = "1.9.0"
-
+kotlinxSerializationConverter = "1.0.0"
 
 
 [libraries]
@@ -40,7 +40,7 @@ koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
 koin-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koin" }
 # Retrofit with Kotlinx Serialization
 retrofit-core = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
-retrofit-converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" } # <-- ADDED
+retrofit-converter-kotlinx-serialization = { module = "com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter", version.ref = "kotlinxSerializationConverter" }
 # Room with KSP
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
