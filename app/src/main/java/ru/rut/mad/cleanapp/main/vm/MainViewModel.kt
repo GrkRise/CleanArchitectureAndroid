@@ -7,10 +7,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import ru.rut.mad.domain.repository.ListRepository
+import ru.rut.mad.domain.usecase.GetCatsUseCase
 
 class MainViewModel(
-    private val listRepository: ListRepository
+    private val getCatsUseCase: GetCatsUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<MainState>(MainState.Loading)
@@ -19,21 +19,14 @@ class MainViewModel(
     private val _navigationEvent = Channel<String>()
     val navigationEvent = _navigationEvent.receiveAsFlow()
 
-
-
     init {
-//        viewModelScope.launch {
-//            // ... логика симуляции загрузки ...
-//            _state.emit(MainState.Content(sampleData)) // Убедитесь, что MainState.Content принимает List<ListElementEntity>
-//        }
-
         loadData()
     }
 
     private fun loadData() {
         viewModelScope.launch {
             _state.value = MainState.Loading
-            listRepository.getElements()
+            val result = getCatsUseCase.execute(Unit)
                 .onSuccess { list ->
                     _state.value = MainState.Content(list)
                 }
@@ -42,7 +35,6 @@ class MainViewModel(
                 }
         }
     }
-
 
     // Метод, который будет вызывать UI
     fun onElementClick(elementId: String) {

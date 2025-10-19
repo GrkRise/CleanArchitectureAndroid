@@ -9,13 +9,15 @@ import ru.rut.mad.cleanapp.details.vm.DetailsViewModel
 import ru.rut.mad.cleanapp.main.vm.MainViewModel
 import ru.rut.mad.data.network.ApiService
 import retrofit2.Retrofit
+import ru.rut.mad.data.mapper.CatDtoToDomainMapper
 import ru.rut.mad.data.repository.ListRepositoryImpl
 import ru.rut.mad.domain.repository.ListRepository
+import ru.rut.mad.domain.usecase.GetCatsUseCase
 
 val appModule = module {
     // Ключевое слово 'viewModel' сообщает Koin,
     // что это ViewModel и его жизненный цикл должен управляться соответственно.
-    viewModel { MainViewModel(listRepository = get()) }
+    viewModel { MainViewModel(get<GetCatsUseCase>()) }
     // ДОБАВЛЕНО: Регистрация ViewModel для экрана деталей
     viewModel { params -> // Используем params для передачи SavedStateHandle
         DetailsViewModel(
@@ -35,7 +37,16 @@ val appModule = module {
             .create(ApiService::class.java)
     }
 
-    // Repository
-    single<ListRepository> { ListRepositoryImpl(apiService = get()) }
+    // Маппер не имеет зависимостей, создаем его просто
+    factory { CatDtoToDomainMapper() }
+
+    // Теперь ListRepositoryImpl зависит от ApiService и Маппера
+    single<ListRepository> { ListRepositoryImpl(get(), get()) }
+
+    // GetCatsUseCase зависит только от ListRepository
+    factory { GetCatsUseCase(get()) }
+
+    // ViewModel зависит только от GetCatsUseCase
+    viewModel { MainViewModel(get()) }
 
 }
