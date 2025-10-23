@@ -18,21 +18,17 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import org.koin.androidx.compose.koinViewModel
-import ru.rut.mad.cleanapp.details.DetailsScreenRoute
+import ru.rut.mad.cleanapp.R
 import ru.rut.mad.cleanapp.main.vm.MainState
-import ru.rut.mad.cleanapp.main.vm.MainViewModel
 import ru.rut.mad.cleanapp.ui.theme.CleanAppTheme
-import ru.rut.mad.cleanapp.ui.view.Like
+
 import ru.rut.mad.domain.entity.ListElementEntity
 
 // ИЗМЕНЕНИЕ: MainScreen теперь "глупый"
@@ -98,8 +94,12 @@ fun ElementRow(element: ListElementEntity, modifier: Modifier = Modifier) {
     ) {
         AsyncImage(
             model = element.image,
-            contentDescription = "Element Image",
-            modifier = Modifier.size(64.dp) // Зададим фиксированный размер для картинки
+            contentDescription = "Element Image ${element.title}",
+            modifier = Modifier.size(64.dp), // Зададим фиксированный размер для картинки
+            // ДОБАВЛЕНО: Заглушка на время загрузки
+            placeholder = painterResource(id = R.drawable.ic_launcher_foreground),
+            // ДОБАВЛЕНО: Изображение в случае ошибки загрузки
+            error = painterResource(id = R.drawable.ic_launcher_foreground)
         )
         Spacer(modifier = Modifier.width(16.dp))
         Column {

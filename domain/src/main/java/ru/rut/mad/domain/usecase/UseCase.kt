@@ -5,5 +5,5 @@ package ru.rut.mad.domain.usecase
  * @param Out Тип возвращаемого результата.
  */
 interface UseCase<In, Out> {
-    suspend fun execute(data: In): Out
+    fun execute(data: In): Out
 }

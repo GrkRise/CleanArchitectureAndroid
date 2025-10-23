@@ -1,52 +1,25 @@
 package ru.rut.mad.cleanapp.di
 
-import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
-import kotlinx.serialization.json.Json
-import okhttp3.MediaType.Companion.toMediaType
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 import ru.rut.mad.cleanapp.details.vm.DetailsViewModel
 import ru.rut.mad.cleanapp.main.vm.MainViewModel
-import ru.rut.mad.data.network.ApiService
-import retrofit2.Retrofit
-import ru.rut.mad.data.mapper.CatDtoToDomainMapper
-import ru.rut.mad.data.repository.ListRepositoryImpl
-import ru.rut.mad.domain.repository.ListRepository
 import ru.rut.mad.domain.usecase.GetCatsUseCase
+import ru.rut.mad.domain.usecase.GetCatsByIdUseCase
 
 val appModule = module {
-    // Ключевое слово 'viewModel' сообщает Koin,
-    // что это ViewModel и его жизненный цикл должен управляться соответственно.
-    viewModel { MainViewModel(get<GetCatsUseCase>()) }
+    // ViewModel зависит только от GetCatsUseCase
+    viewModel { MainViewModel(get()) }
     // ДОБАВЛЕНО: Регистрация ViewModel для экрана деталей
     viewModel { params -> // Используем params для передачи SavedStateHandle
         DetailsViewModel(
+            getCatsByIdUseCase = get<GetCatsByIdUseCase>(), // <-- ЯВНОЕ УКАЗАНИЕ ТИПА
             savedStateHandle = params.get()
         )
     }
 
-    // Network
-    single<ApiService> {
-        val contentType = "application/json".toMediaType()
-        val json = Json { ignoreUnknownKeys = true }
-
-        Retrofit.Builder()
-            .baseUrl("https://api.thecatapi.com/")
-            .addConverterFactory(json.asConverterFactory(contentType))
-            .build()
-            .create(ApiService::class.java)
-    }
-
-    // Маппер не имеет зависимостей, создаем его просто
-    factory { CatDtoToDomainMapper() }
-
-    // Теперь ListRepositoryImpl зависит от ApiService и Маппера
-    single<ListRepository> { ListRepositoryImpl(get(), get()) }
-
     // GetCatsUseCase зависит только от ListRepository
     factory { GetCatsUseCase(get()) }
-
-    // ViewModel зависит только от GetCatsUseCase
-    viewModel { MainViewModel(get()) }
+    factory { GetCatsByIdUseCase(get()) }
 
 }
