@@ -102,6 +102,8 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.material3)
 
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.koin.androidx.workmanager)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
