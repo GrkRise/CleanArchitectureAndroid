@@ -33,23 +33,6 @@ class DetailsViewModel(
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-//    val state: StateFlow<DetailsState> = flow<DetailsState> {
-//        val route: DetailsScreenRoute = savedStateHandle.toRoute()
-//        val catId = route.id
-//        getCatsByIdUseCase.execute(catId) // <-- ИСПРАВЛЕННЫЙ ВЫЗОВ
-//            .collect { element ->
-//                if (element != null) {
-//                    emit(DetailsState.Content(element))
-//                } else {
-//                    emit(DetailsState.Error("Element with ID $catId not found in cache"))
-//                }
-//            }
-//    }.stateIn(
-//        scope = viewModelScope,
-//        started = SharingStarted.WhileSubscribed(5000),
-//        initialValue = DetailsState.Loading
-//    )
-
     // Меняем на MutableStateFlow, чтобы иметь возможность обновлять его изнутри
     private val _state = MutableStateFlow<DetailsState>(DetailsState.Loading)
     val state = _state.asStateFlow()
@@ -69,41 +52,42 @@ class DetailsViewModel(
         }
     }
 
+    // Метод для запуска фоновой задачи из UI
     fun applyFilter() {
         val currentState = _state.value as? DetailsState.Content ?: return
         val currentImageUri = currentState.element.image
 
+        // 1. Создаем ограничения для задачи
         val constraints = Constraints.Builder()
             .setRequiresCharging(true)
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
+        // 2. Создаем запрос, передавая в него URI картинки и ограничения
         val filterRequest = OneTimeWorkRequestBuilder<FilterWorker>()
             .setInputData(workDataOf(KEY_IMAGE_URI to currentImageUri))
             .setConstraints(constraints)
-            .addTag("image_filter")
             .build()
 
-        // Ставим задачу в очередь
+        // 3. Ставим задачу в очередь
         workManager.enqueue(filterRequest)
-
-        // V-- ДОБАВЛЕНА ЛОГИКА ОТСЛЕЖИВАНИЯ РЕЗУЛЬТАТА --V
+        // 4. Сразу же начинаем отслеживать ее результат
         observeWorkResult(filterRequest.id)
-        // ^-- ДОБАВЛЕНА ЛОГИКА ОТСЛЕЖИВАНИЯ РЕЗУЛЬТАТА --^
     }
 
+    // Метод для отслеживания результата работы Worker'а
     private fun observeWorkResult(workId: UUID) {
         viewModelScope.launch {
             workManager.getWorkInfoByIdFlow(workId)
-                // Отфильтровываем null значения, которые могут прийти в самом начале
                 .filterNotNull()
                 .collect { workInfo ->
-                    // Проверяем, что работа завершилась успешно
-                    // Используем полное имя WorkInfo.State.SUCCEEDED
+                    // Как только работа успешно завершена...
                     if (workInfo.state == WorkInfo.State.SUCCEEDED) {
+                        // ...получаем URI отфильтрованного изображения...
                         val filteredUri = workInfo.outputData.getString(KEY_FILTERED_URI)
 
                         if (filteredUri != null) {
+                            // ...и обновляем наш State новым элементом
                             val oldElement = (_state.value as? DetailsState.Content)?.element
                             if (oldElement != null) {
                                 val newElement = oldElement.copy(image = filteredUri)

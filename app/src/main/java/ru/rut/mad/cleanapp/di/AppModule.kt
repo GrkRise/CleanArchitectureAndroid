@@ -27,9 +27,10 @@ val appModule = module {
     factory { GetCatsUseCase(get()) }
     factory { GetCatsByIdUseCase(get()) }
 
-    single { WorkManager.getInstance(androidContext()) } // <-- ДОБАВЛЕНО
+    // Регистрируем WorkManager как singleton
+    single { WorkManager.getInstance(androidContext()) }
 
-    // ДОБАВЛЕНО: Регистрация нашего нового Worker-а
+    // Регистрируем наш Worker с помощью специального dsl 'worker'
     worker { FilterWorker(get(), get(), get()) }
 
 

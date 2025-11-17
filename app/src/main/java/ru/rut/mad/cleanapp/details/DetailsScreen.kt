@@ -29,7 +29,8 @@ fun DetailsScreen(
     // Теперь навигация не нужна, vm получаем из Koin
     viewModel: DetailsViewModel = koinViewModel()
 ) {
-    val state by viewModel.state.collectAsState() // <-- СОБИРАЕМ state
+    // Подписываемся на изменения state из ViewModel
+    val state by viewModel.state.collectAsState()
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -50,11 +51,10 @@ fun DetailsScreen(
                     )
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // V-- ВЫЗЫВАЕМ МЕТОД viewModel --V
+                    // При нажатии на кнопку вызываем метод из ViewModel
                     Button(onClick = { viewModel.applyFilter() }) {
                         Text("Применить Ч/Б фильтр (нужна зарядка)")
                     }
-                    // ^-- ВЫЗЫВАЕМ МЕТОД viewModel --^
 
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(text = "ID: ${currentState.element.id}")
