@@ -104,6 +104,14 @@ dependencies {
 
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.koin.androidx.workmanager)
+
+    // ... существующие зависимости
+
+    // Jetpack Glance для создания виджетов
+    implementation(libs.glance.appwidget)
+
+    // DataStore для хранения состояния виджета
+    implementation(libs.datastore.preferences)
     
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
