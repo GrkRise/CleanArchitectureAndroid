@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,7 +15,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import ru.rut.mad.cleanapp.R
 import ru.rut.mad.cleanapp.main.vm.MainState
+import ru.rut.mad.cleanapp.main.vm.PlayerState
 import ru.rut.mad.cleanapp.ui.theme.CleanAppTheme
 
 import ru.rut.mad.domain.entity.ListElementEntity
@@ -35,6 +43,8 @@ import ru.rut.mad.domain.entity.ListElementEntity
 @Composable
 fun MainScreen(
     state: MainState,
+    playerState: PlayerState,      // Данные из Плеера
+    onPlayPauseClick: (String) -> Unit, // Клик по кнопке Play
     onElementClick: (String) -> Unit
 ) {
     Box(
@@ -42,16 +52,95 @@ fun MainScreen(
         contentAlignment = Alignment.Center
     ) {
         when (state) {
-            is MainState.Content -> ContentState(
-                list = state.list,
-                onElementClick = onElementClick
-            )
+            is MainState.Content -> {
+                ContentState(
+                    list = state.list,
+                    currentTrackIndex = playerState.currentTrackIndex,
+                    isPlaying = playerState.isPlaying,
+                    onPlayPauseClick = onPlayPauseClick,
+                    onElementClick = onElementClick
+                )
+            }
             is MainState.Error -> ErrorState(message = state.message)
             MainState.Loading -> LoadingState()
         }
     }
 }
 
+@Composable
+fun ContentState(
+    list: List<ListElementEntity>,
+    currentTrackIndex: Int,
+    isPlaying: Boolean,
+    onPlayPauseClick: (String) -> Unit,
+    onElementClick: (String) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(16.dp)
+    ) {
+        // Используем itemsIndexed, чтобы сопоставить индекс списка с индексом плеера
+        itemsIndexed(list) { index, element ->
+
+            // Логика отображения: так как треков всего 2, мы используем остаток от деления.
+            // Элементы 0, 2, 4... управляют треком 1 (индекс 0)
+            // Элементы 1, 3, 5... управляют треком 2 (индекс 1)
+            val isLinkedToCurrentTrack = (index % 2 == currentTrackIndex)
+            val showPauseIcon = isLinkedToCurrentTrack && isPlaying
+
+            ElementRow(
+                element = element,
+                showPauseIcon = showPauseIcon,
+                onPlayClick = { onPlayPauseClick(element.id) },
+                onItemClick = { onElementClick(element.id) }
+            )
+        }
+    }
+}
+
+@Composable
+fun ElementRow(
+    element: ListElementEntity,
+    showPauseIcon: Boolean,
+    onPlayClick: () -> Unit,
+    onItemClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(4.dp),
+        onClick = onItemClick // Клик по карточке ведет к навигации
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Отдельная кнопка Play/Pause
+            IconButton(
+                onClick = onPlayClick, // Клик по кнопке управляет музыкой
+                modifier = Modifier.size(48.dp)
+            ) {
+                Icon(
+                    painter = painterResource(
+                        id = if (showPauseIcon) R.drawable.ic_pause else R.drawable.ic_play_arrow
+                    ),
+                    contentDescription = "Play/Pause",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            // Текст и картинка
+            Column {
+                Text(text = element.title, style = MaterialTheme.typography.titleMedium)
+                // AsyncImage можно добавить сюда же, как в прошлых лабах
+            }
+        }
+    }
+}
 
 @Composable
 fun LoadingState() {
@@ -60,54 +149,7 @@ fun LoadingState() {
 
 @Composable
 fun ErrorState(message: String) {
-    Text(text = message, color = Color.Red)
-}
-
-// ИЗМЕНЕНИЕ: ContentState получает лямбду onElementClick
-@Composable
-fun ContentState(
-    list: List<ListElementEntity>,
-    onElementClick: (String) -> Unit
-) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(8.dp) // Добавим отступы между элементами
-    ) {
-        items(list) { element ->
-            ElementRow(
-                element = element,
-                // Передаем modifier с обработчиком клика в ElementRow
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onElementClick(element.id) }
-                    .padding(8.dp) // Добавим внутренние отступы для красоты
-            )
-        }
-    }
-}
-
-@Composable
-fun ElementRow(element: ListElementEntity, modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier, // Применяем переданный modifier здесь
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        AsyncImage(
-            model = element.image,
-            contentDescription = "Element Image ${element.title}",
-            modifier = Modifier.size(64.dp), // Зададим фиксированный размер для картинки
-            // ДОБАВЛЕНО: Заглушка на время загрузки
-            placeholder = painterResource(id = R.drawable.ic_launcher_foreground),
-            // ДОБАВЛЕНО: Изображение в случае ошибки загрузки
-            error = painterResource(id = R.drawable.ic_launcher_foreground)
-        )
-        Spacer(modifier = Modifier.width(16.dp))
-        Column {
-            Text(text = element.title)
-            // Можно добавить и описание, если нужно
-            // Text(text = element.description, style = MaterialTheme.typography.bodySmall)
-        }
-    }
+    Text(text = message, color = MaterialTheme.colorScheme.error)
 }
 
 // --- ИНСТРУМЕНТЫ ДЛЯ ПРЕВЬЮ ---
@@ -127,7 +169,12 @@ fun ContentStatePreview() {
         ListElementEntity("2", "Serious Cat", "...", false)
     )
     // Передаем в превью пустую лямбду, так как навигация здесь не нужна
-    ContentState(list = sampleData, onElementClick = {})
+    ContentState(
+        list = sampleData, onElementClick = {},
+        currentTrackIndex = TODO(),
+        isPlaying = TODO(),
+        onPlayPauseClick = TODO()
+    )
 }
 
 @Preview(name = "Loading State", showBackground = true)

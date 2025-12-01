@@ -1,26 +1,39 @@
 package ru.rut.mad.cleanapp.widget
 
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionToken
+import com.google.common.util.concurrent.MoreExecutors
+import ru.rut.mad.cleanapp.service.PlaybackService
 
 class MusicWidgetReceiver : GlanceAppWidgetReceiver() {
     override val glanceAppWidget: GlanceAppWidget = MusicWidget()
 
-    /**
-     * Переопределяем onReceive для добавления логов.
-     * Это самый надежный способ убедиться, что система доставила наше событие.
-     */
     override fun onReceive(context: Context, intent: Intent) {
-        // ВАЖНО: Сначала вызываем super.onReceive, чтобы Glance выполнил свою магию
         super.onReceive(context, intent)
 
-        // Теперь добавляем свой лог
-        val action = intent.action
-        if (action == MusicWidgetActions.ACTION_PLAY_PAUSE || action == MusicWidgetActions.ACTION_NEXT_TRACK) {
-            Log.d("MusicWidgetReceiver", "Received action: $action")
+        val action = intent.action ?: return
+
+        if (action == MusicWidgetActions.ACTION_PLAY_PAUSE ||
+            action == MusicWidgetActions.ACTION_NEXT_TRACK) {
+
+            // Создаем Intent, адресованный нашему сервису
+            val serviceIntent = Intent(context, PlaybackService::class.java).apply {
+                this.action = action // Передаем action (PLAY_PAUSE или NEXT) дальше
+            }
+
+            // Запускаем сервис с этой командой
+            // startForegroundService гарантирует доставку, даже если приложение в фоне
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                context.startForegroundService(serviceIntent)
+            } else {
+                context.startService(serviceIntent)
+            }
         }
     }
 }

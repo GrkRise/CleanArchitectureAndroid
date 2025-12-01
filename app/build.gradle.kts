@@ -112,6 +112,9 @@ dependencies {
 
     // DataStore для хранения состояния виджета
     implementation(libs.datastore.preferences)
+
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.session)
     
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
